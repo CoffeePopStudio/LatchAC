@@ -1,0 +1,21 @@
+name: LatchAC
+version: '${version}'
+
+main: org.coffeepop.latchac.paper.LatchAntiCheat
+api-version: '26.1'
+load: POSTWORLD
+folia-supported: true
+
+description: Latch AntiCheat —— 零误伤生电友好反作弊（如红石锁存器，精准记忆合法状态）
+authors: [ Neamyoo ]
+
+commands:
+  latchac:
+    description: LatchAC 管理命令
+    permission: latchac.admin
+    usage: /latchac reload
+
+permissions:
+  latchac.admin:
+    description: LatchAC 管理权限
+    default: op
