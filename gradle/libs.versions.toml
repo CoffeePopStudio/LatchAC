@@ -1,17 +1,12 @@
 [versions]
 paper-api = "26.1.2.build.+"
 minecraft = "26.1.2"
-
 run-task = "3.0.2"
-snakeyaml = "2.2"
-junit = "5.11.4"
+packetevents = "2.12.0"
 
 [libraries]
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
-snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
-junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+packetevents-spigot = { module = "com.github.retrooper:packetevents-spigot", version.ref = "packetevents" }
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-task" }

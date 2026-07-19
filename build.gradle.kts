@@ -1,20 +1,24 @@
-subprojects {
-    apply(plugin = "java-library")
+plugins {
+    id("java-library")
+}
 
+allprojects {
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://repo.codemc.io/repository/maven-public/")
     }
+}
 
-    extensions.configure<JavaPluginExtension> {
+subprojects {
+    apply(plugin = "java-library")
+
+    java {
         toolchain.languageVersion = JavaLanguageVersion.of(25)
     }
 
-    tasks.withType<JavaCompile>().configureEach {
+    tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
-    }
-
-    tasks.withType<Test>().configureEach {
-        useJUnitPlatform()
+        options.release = 25
     }
 }
