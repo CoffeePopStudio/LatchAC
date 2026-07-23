@@ -3,13 +3,39 @@ package org.coffeepop.latchac.core.engine;
 import org.coffeepop.latchac.core.player.LatchPlayer;
 
 /**
- * Predicts legal movement bounds for the next tick using vanilla Minecraft physics.
- * Pure physics derivation from wiki/mojang source — no cheat source references.
+ * Predicts legal movement bounds using either platform-specific NMS simulation
+ * or pure physics derivation as fallback.
  */
 public final class PredictionEngine {
+    private static SimulatorProvider simulator;
+
     private PredictionEngine() {}
 
+    /** Set by platform layer at startup. Uses NMS for precise prediction. */
+    public static void setSimulator(SimulatorProvider provider) {
+        simulator = provider;
+    }
+
     public static MotionBounds predict(LatchPlayer p, double slipperiness) {
+        // Try NMS simulator first for maximum precision
+        if (simulator != null) {
+            try {
+                double[] nms = simulator.predict(p.getPlatformPlayer(),
+                        p.getDeltaX(), p.getDeltaY(), p.getDeltaZ(),
+                        p.isOnGround(), p.isSprinting(), p.isSneaking());
+                return new MotionBounds(
+                        -nms[0], nms[0],
+                        nms[2], nms[3],
+                        -nms[1], nms[1],
+                        p.getY(), nms[4] > 0.5);
+            } catch (Exception ignored) {}
+        }
+
+        // Fallback: pure physics constants
+        return predictFallback(p, slipperiness);
+    }
+
+    private static MotionBounds predictFallback(LatchPlayer p, double slipperiness) {
         double lastDx = p.getDeltaX();
         double lastDy = p.getDeltaY();
         double lastDz = p.getDeltaZ();

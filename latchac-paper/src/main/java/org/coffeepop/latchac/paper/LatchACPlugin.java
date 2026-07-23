@@ -9,9 +9,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.coffeepop.latchac.core.LatchAC;
 import org.coffeepop.latchac.core.player.LatchPlayer;
+import org.coffeepop.latchac.core.engine.PredictionEngine;
 import org.coffeepop.latchac.paper.command.LatchACCommand;
 import org.coffeepop.latchac.paper.listener.PacketCheckListener;
 import org.coffeepop.latchac.paper.listener.PlayerListener;
+import org.coffeepop.latchac.paper.nms.v26_1.V26_1MotionSimulator;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -29,6 +31,7 @@ public final class LatchACPlugin extends JavaPlugin {
         saveDefaultConfig();
         LatchAC.init(getLogger());
         LatchAC.get().initBaselineProfiler(getDataFolder());
+        PredictionEngine.setSimulator(new V26_1MotionSimulator());
 
         // ---- Core config (debug, prefix, VL thresholds) ----
         var yaml = getConfig();
