@@ -30,16 +30,17 @@ public final class LatchACPlugin extends JavaPlugin {
         LatchAC.init(getLogger());
         LatchAC.get().initBaselineProfiler(getDataFolder());
 
-        // Load platform YAML config into core ConfigManager
-        var coreCfg = LatchAC.get().getConfigManager();
+        // ---- Core config (debug, prefix, VL thresholds) ----
         var yaml = getConfig();
-        var values = new java.util.HashMap<String, Object>();
-        for (String key : yaml.getKeys(false)) {
-            values.put(key, yaml.get(key));
-        }
-        if (!values.isEmpty()) coreCfg.load(values);
+        var coreCfg = LatchAC.get().getConfigManager();
+        coreCfg.init(
+            yaml.getBoolean("debug", false),
+            yaml.getString("prefix"),
+            yaml.getInt("alert-threshold", 20),
+            yaml.getInt("punish-threshold", 50)
+        );
 
-        // Register admin whitelist for baseline population pool
+        // ---- Baseline config (population baseline, training mode) ----
         var pop = LatchAC.get().getBaselineProfiler().getPopulation();
         var whitelist = yaml.getStringList("baseline.admin-whitelist");
         for (String uuid : whitelist) {
@@ -47,7 +48,6 @@ public final class LatchACPlugin extends JavaPlugin {
             catch (IllegalArgumentException ignored) {}
         }
 
-        // Training mode: current player data feeds into population baseline
         boolean trainingMode = yaml.getBoolean("baseline.training-mode", false);
         LatchAC.get().getBaselineProfiler().setTrainingMode(trainingMode);
         if (trainingMode) {

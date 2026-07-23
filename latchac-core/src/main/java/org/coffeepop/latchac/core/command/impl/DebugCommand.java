@@ -22,7 +22,7 @@ public class DebugCommand implements SubCommand {
     public List<Component> execute(String senderId, String[] args) {
         var cfg = LatchAC.get().getConfigManager();
         boolean was = cfg.isDebug();
-        cfg.set("debug", !was);
+        cfg.setDebug(!was);
         return List.of(Component.text()
                 .append(Component.text("Debug mode: ", NamedTextColor.GRAY))
                 .append(Component.text(was ? "OFF" : "ON", was ? NamedTextColor.RED : NamedTextColor.GREEN))

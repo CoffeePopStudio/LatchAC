@@ -42,7 +42,6 @@ public final class LatchAC {
     public static void init(Logger logger) {
         if (instance != null) throw new IllegalStateException("LatchAC already initialized");
         instance = new LatchAC(logger);
-        instance.configManager.loadDefaults();
         instance.commandManager.register(new VLCommand());
         instance.commandManager.register(new CheckCommand());
         instance.commandManager.register(new DebugCommand());
