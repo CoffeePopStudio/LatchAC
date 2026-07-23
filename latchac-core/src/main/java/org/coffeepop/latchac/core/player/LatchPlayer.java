@@ -13,11 +13,21 @@ import java.util.function.Consumer;
  */
 public class LatchPlayer {
 
-    /** Set by LatchAC.init — called after every movement update. */
-    public static Consumer<LatchPlayer> onDataUpdate = p -> {};
+    /** Called after every movement update. Use {@link #setOnDataUpdate} to wire. */
+    private static Consumer<LatchPlayer> onDataUpdate = p -> {};
 
-    /** Set by LatchAC.init — teleports player back to last position. */
-    public static Consumer<LatchPlayer> onSetback = p -> {};
+    /** Teleports player back to last position. Use {@link #setOnSetback} to wire. */
+    private static Consumer<LatchPlayer> onSetback = p -> {};
+
+    /** Package-private setter — only LatchAC wiring should call this. */
+    public static void setOnDataUpdate(Consumer<LatchPlayer> callback) {
+        onDataUpdate = callback;
+    }
+
+    /** Package-private setter — only LatchAC wiring should call this. */
+    public static void setOnSetback(Consumer<LatchPlayer> callback) {
+        onSetback = callback;
+    }
 
     // ---- Identity ----
 
@@ -41,7 +51,17 @@ public class LatchPlayer {
     private boolean inContainer;
     private String containerType;
     private boolean inVehicle;
+    private boolean inLiquid;
     private long lastMoveTime;
+
+    // ---- Exemption ----
+
+    /** GameMode ordinal: 0=Survival, 1=Creative, 2=Adventure, 3=Spectator. */
+    private int gameMode;
+    /** Plugin-granted flight (e.g. Essentials /fly). Does NOT include elytra. */
+    private boolean allowFlight;
+    /** Set true during setback teleport to skip next check cycle (re-entrancy guard). */
+    private boolean setbackInProgress;
 
     public LatchPlayer(UUID uniqueId, String name, Object platformPlayer) {
         this.uniqueId = uniqueId;
@@ -71,7 +91,7 @@ public class LatchPlayer {
         this.onGround = onGround;
         this.lastMoveTime = System.currentTimeMillis();
         this.hasPosition = true;
-        onDataUpdate.accept(this);
+        if (!setbackInProgress) onDataUpdate.accept(this);
     }
 
     public void updateRotation(float yaw, float pitch, boolean onGround) {
@@ -79,13 +99,13 @@ public class LatchPlayer {
         this.yaw = yaw; this.pitch = pitch;
         this.onGround = onGround;
         this.lastMoveTime = System.currentTimeMillis();
-        onDataUpdate.accept(this);
+        if (!setbackInProgress) onDataUpdate.accept(this);
     }
 
     public void updateFlying(boolean onGround) {
         this.onGround = onGround;
         this.lastMoveTime = System.currentTimeMillis();
-        onDataUpdate.accept(this);
+        if (!setbackInProgress) onDataUpdate.accept(this);
     }
 
     public void updateFlags(boolean sprinting, boolean sneaking) {
@@ -98,9 +118,32 @@ public class LatchPlayer {
         this.containerType = inContainer ? type : null;
     }
 
-    public void setback() { onSetback.accept(this); }
+    public void setback() {
+        setbackInProgress = true;
+        onSetback.accept(this);
+        // Reset guard after next packet arrives (handled in update* methods)
+    }
+
+    /** Called by platform when setback teleport confirmation packet arrives. */
+    public void clearSetbackGuard() { setbackInProgress = false; }
 
     public void setInVehicle(boolean inVehicle) { this.inVehicle = inVehicle; }
+    public void setInLiquid(boolean inLiquid) { this.inLiquid = inLiquid; }
+
+    public void setGameMode(int gameMode) { this.gameMode = gameMode; }
+    public int getGameMode() { return gameMode; }
+
+    public void setAllowFlight(boolean allowFlight) { this.allowFlight = allowFlight; }
+    public boolean isAllowFlight() { return allowFlight; }
+
+    /**
+     * Whether this player should be exempt from movement checks.
+     * Exempts Creative, Spectator, and plugin-granted flight.
+     * Does NOT exempt elytra (potential bypass vector).
+     */
+    public boolean shouldExemptMovement() {
+        return gameMode == 1 || gameMode == 3 || allowFlight;
+    }
 
     // ========================
     //  Position
@@ -139,6 +182,7 @@ public class LatchPlayer {
     public boolean isInContainer() { return inContainer; }
     public String getContainerType() { return containerType; }
     public boolean isInVehicle() { return inVehicle; }
+    public boolean isInLiquid() { return inLiquid; }
     public long getLastMoveTime() { return lastMoveTime; }
 
     public boolean movedRecently(long ms) {

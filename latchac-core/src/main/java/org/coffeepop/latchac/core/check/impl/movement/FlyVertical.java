@@ -29,6 +29,7 @@ public class FlyVertical extends Check {
     public void onCheck(LatchPlayer p) {
         if (!p.hasPosition()) return;
         if (p.isInVehicle()) return;
+        if (p.isInLiquid()) { states.remove(p.getUniqueId()); return; }
         if (p.isOnGround()) { states.remove(p.getUniqueId()); return; }
 
         double dy = p.getDeltaY();
@@ -54,4 +55,9 @@ public class FlyVertical extends Check {
     }
 
     private static class VerticalState { int ticks; int stableTicks; double lastDy; }
+
+    @Override
+    public void onQuit(UUID playerId) {
+        states.remove(playerId);
+    }
 }

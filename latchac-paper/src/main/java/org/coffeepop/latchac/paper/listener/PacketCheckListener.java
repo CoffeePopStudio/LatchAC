@@ -56,7 +56,10 @@ public class PacketCheckListener extends PacketListenerAbstract {
             MoveSnapshot snap = capture(ct, event);
             runOnMain(() -> {
                 PlayerData data = LatchAC.get().getDataManager().get(id);
-                if (data != null) snap.apply(data.getPlayer());
+                if (data != null) {
+                    snap.apply(data.getPlayer());
+                    updateLiquidState(player, data);
+                }
             });
         }
     }
@@ -82,6 +85,11 @@ public class PacketCheckListener extends PacketListenerAbstract {
     private void setContainer(UUID id, boolean open, String type) {
         PlayerData data = LatchAC.get().getDataManager().get(id);
         if (data != null) data.getPlayer().setInContainer(open, type);
+    }
+
+    private void updateLiquidState(Player player, PlayerData data) {
+        var block = player.getLocation().getBlock();
+        data.getPlayer().setInLiquid(block.isLiquid());
     }
 
     // ---- Movement snapshot ----
