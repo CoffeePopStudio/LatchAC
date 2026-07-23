@@ -7,6 +7,8 @@ import org.coffeepop.latchac.core.command.CommandManager;
 import org.coffeepop.latchac.core.command.impl.CheckCommand;
 import org.coffeepop.latchac.core.command.impl.DebugCommand;
 import org.coffeepop.latchac.core.command.impl.VLCommand;
+import org.coffeepop.latchac.core.command.impl.BaselineCommand;
+import org.coffeepop.latchac.core.command.impl.TrainingCommand;
 import org.coffeepop.latchac.core.config.ConfigManager;
 import org.coffeepop.latchac.core.data.DataManager;
 import org.coffeepop.latchac.core.baseline.BaselineProfiler;
@@ -45,6 +47,8 @@ public final class LatchAC {
         instance.commandManager.register(new VLCommand());
         instance.commandManager.register(new CheckCommand());
         instance.commandManager.register(new DebugCommand());
+        instance.commandManager.register(new BaselineCommand());
+        instance.commandManager.register(new TrainingCommand());
         CheckScanner.scanAndRegister(logger);
         // Wire callbacks AFTER all checks are registered and DataManager is ready
         instance.checkRegistry.wireCallbacks();

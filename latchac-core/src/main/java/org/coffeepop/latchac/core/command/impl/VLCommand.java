@@ -20,8 +20,7 @@ public class VLCommand implements SubCommand {
 
     @Override
     public List<Component> execute(String senderId, String[] args) {
-        if (args.length == 0) return List.of(
-                Component.text("Usage: /latchac vl <player>", NamedTextColor.RED));
+        if (args.length == 0) return overview();
 
         UUID target = findPlayer(args[0]);
         if (target == null) return List.of(
@@ -65,5 +64,40 @@ public class VLCommand implements SubCommand {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private List<Component> overview() {
+        var data = LatchAC.get().getDataManager();
+        var all = data.getAll();
+        if (all.isEmpty()) return List.of(
+                Component.text("No players online.", NamedTextColor.GRAY));
+
+        var lines = new ArrayList<Component>();
+        lines.add(Component.text()
+                .append(Component.text("VL Overview (", NamedTextColor.GRAY))
+                .append(Component.text(String.valueOf(all.size()), NamedTextColor.WHITE))
+                .append(Component.text(" online):", NamedTextColor.GRAY))
+                .build());
+
+        for (var entry : all) {
+            var p = entry.getPlayer();
+            var vls = LatchAC.get().getViolationHandler().getAllVLs(p.getUniqueId());
+            if (vls.isEmpty()) {
+                lines.add(Component.text()
+                        .append(Component.text("  " + p.getName(), NamedTextColor.WHITE))
+                        .append(Component.text("  0 violations", NamedTextColor.GREEN))
+                        .build());
+            } else {
+                int total = vls.values().stream().mapToInt(Integer::intValue).sum();
+                var sb = new StringBuilder();
+                vls.forEach((check, vl) -> sb.append(check).append("=").append(vl).append(" "));
+                lines.add(Component.text()
+                        .append(Component.text("  " + p.getName(), NamedTextColor.WHITE))
+                        .append(Component.text("  [" + total + "] ", NamedTextColor.RED))
+                        .append(Component.text(sb.toString().trim(), NamedTextColor.GRAY))
+                        .build());
+            }
+        }
+        return lines;
     }
 }

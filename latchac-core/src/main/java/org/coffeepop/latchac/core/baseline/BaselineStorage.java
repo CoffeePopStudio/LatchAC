@@ -9,11 +9,15 @@ import java.util.*;
  */
 public class BaselineStorage {
     private final String dbPath;
+    private final File dataFolder;
 
     public BaselineStorage(File dataFolder) {
+        this.dataFolder = dataFolder;
         this.dbPath = new File(dataFolder, "baselines.db").getAbsolutePath();
         initDb();
     }
+
+    public File getDataFolder() { return dataFolder; }
 
     private void initDb() {
         try (Connection conn = connect()) {
