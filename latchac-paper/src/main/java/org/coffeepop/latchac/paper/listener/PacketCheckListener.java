@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -47,10 +46,6 @@ public class PacketCheckListener extends PacketListenerAbstract {
         PacketTypeCommon type = event.getPacketType();
         if (!(type instanceof PacketType.Play.Client ct)) return;
 
-        if (ct == PacketType.Play.Client.CLOSE_WINDOW) {
-            runOnMain(() -> setContainer(id, false, null));
-            return;
-        }
         if (MOVEMENT.contains(ct)) {
             // Extract data ON THIS THREAD (Netty) — the buffer will be released after
             MoveSnapshot snap = capture(ct, event);
@@ -66,25 +61,12 @@ public class PacketCheckListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.isCancelled()) return;
-        Player player = (Player) event.getPlayer();
-        if (player == null) return;
-
-        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
-            String type = String.valueOf(new WrapperPlayServerOpenWindow(event).getType());
-            UUID id = player.getUniqueId();
-            runOnMain(() -> setContainer(id, true, type));
-        }
+        // No-op: container tracking moved to Bukkit InventoryOpenEvent/InventoryCloseEvent
     }
 
     private void runOnMain(Runnable r) {
         if (Bukkit.isPrimaryThread()) r.run();
         else Bukkit.getScheduler().runTask(plugin, r);
-    }
-
-    private void setContainer(UUID id, boolean open, String type) {
-        PlayerData data = LatchAC.get().getDataManager().get(id);
-        if (data != null) data.getPlayer().setInContainer(open, type);
     }
 
     private void updateLiquidState(Player player, PlayerData data) {
