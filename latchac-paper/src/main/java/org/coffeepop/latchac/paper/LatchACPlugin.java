@@ -14,6 +14,7 @@ import org.coffeepop.latchac.paper.listener.PacketCheckListener;
 import org.coffeepop.latchac.paper.listener.PlayerListener;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Paper plugin entry point — wires platform adapters and the command executor.
@@ -37,6 +38,21 @@ public final class LatchACPlugin extends JavaPlugin {
             values.put(key, yaml.get(key));
         }
         if (!values.isEmpty()) coreCfg.load(values);
+
+        // Register admin whitelist for baseline population pool
+        var pop = LatchAC.get().getBaselineProfiler().getPopulation();
+        var whitelist = yaml.getStringList("baseline.admin-whitelist");
+        for (String uuid : whitelist) {
+            try { pop.addAdminWhitelist(UUID.fromString(uuid)); }
+            catch (IllegalArgumentException ignored) {}
+        }
+
+        // Training mode: current player data feeds into population baseline
+        boolean trainingMode = yaml.getBoolean("baseline.training-mode", false);
+        LatchAC.get().getBaselineProfiler().setTrainingMode(trainingMode);
+        if (trainingMode) {
+            getLogger().info("Training mode enabled — player data will feed into population baseline");
+        }
 
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);
 

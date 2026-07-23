@@ -80,4 +80,8 @@ public class BaselineProfiler {
 
     public BaselineStorage getStorage() { return storage; }
     public PopulationBaseline getPopulation() { return population; }
+
+    public void setTrainingMode(boolean enabled) {
+        population.setTrainingMode(enabled);
+    }
 }

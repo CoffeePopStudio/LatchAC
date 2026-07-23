@@ -17,6 +17,7 @@ public class PopulationBaseline {
     private final Map<String, double[]> activeBaseline = new ConcurrentHashMap<>();
     private final Set<UUID> adminWhitelist = ConcurrentHashMap.newKeySet();
     private final Map<UUID, AdmissionState> admissionStates = new ConcurrentHashMap<>();
+    private boolean trainingMode;
 
     public PopulationBaseline(BaselineStorage storage) {
         this.storage = storage;
@@ -47,6 +48,10 @@ public class PopulationBaseline {
         adminWhitelist.add(playerId);
     }
 
+    public void setTrainingMode(boolean trainingMode) {
+        this.trainingMode = trainingMode;
+    }
+
     private boolean canAdmitToPool(UUID playerId, AdmissionState state) {
         if (state.totalVL >= 3) return false;
         if (state.onlineMinutes < 120) return false;
@@ -58,6 +63,13 @@ public class PopulationBaseline {
     public void recordSession(UUID playerId, int sessionVL, long onlineMs,
                                Map<String, Double> metricCurrentValues) {
         if (adminWhitelist.contains(playerId)) return;
+
+        // Training mode: bypass gating, feed directly into population baseline
+        if (trainingMode) {
+            metricCurrentValues.forEach((metric, value) ->
+                storage.savePopulationBaseline(metric, value, 1.0, 1));
+            return;
+        }
 
         var state = admissionStates.computeIfAbsent(playerId, id -> new AdmissionState());
         state.totalVL += sessionVL;
