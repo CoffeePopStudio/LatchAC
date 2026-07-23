@@ -113,10 +113,11 @@ public abstract class Check {
 
     private static final ThreadLocal<Boolean> SETBACK_GUARD = ThreadLocal.withInitial(() -> false);
 
-    /** Flag + setback in one call. Increments VL AND teleports back. */
+    /** Flag + setback in one call. Skips setback in training mode. */
     protected void flagAndSetback(LatchPlayer player, String detail) {
         if (SETBACK_GUARD.get()) return;
         flag(player, detail);
+        if (LatchAC.get().getViolationHandler().isTrainingMode()) return;
         SETBACK_GUARD.set(true);
         try {
             player.setback();
