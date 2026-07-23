@@ -63,6 +63,11 @@ public class LatchPlayer {
     private long pendingVelocityTime;
     // ---- Timing ----
     private java.util.Deque<Long> packetTimestamps = new java.util.ArrayDeque<>();
+    // ---- CPS / Combat metrics ----
+    private java.util.Deque<Long> clickTimestamps = new java.util.ArrayDeque<>();
+    private float lastDeltaYaw;
+    // ---- Ground ratio ----
+    private int tickCount, groundTickCount;
 
     // ---- Exemption ----
 
@@ -177,6 +182,39 @@ public class LatchPlayer {
         var it = packetTimestamps.descendingIterator();
         while (it.hasNext() && it.next() > cutoff) count++;
         return (double) count;
+    }
+
+    public void addClickTimestamp(long nanoTime) {
+        clickTimestamps.addLast(nanoTime);
+        if (clickTimestamps.size() > 20) clickTimestamps.removeFirst();
+    }
+
+    public double getCPS() {
+        if (clickTimestamps.size() < 2) return 0;
+        long cutoff = clickTimestamps.peekLast() - 1_000_000_000L;
+        int count = 0;
+        var it = clickTimestamps.descendingIterator();
+        while (it.hasNext() && it.next() > cutoff) count++;
+        return (double) count;
+    }
+
+    public float getTurnJerk() {
+        float jerk = Math.abs(getDeltaYaw() - lastDeltaYaw);
+        lastDeltaYaw = getDeltaYaw();
+        return jerk;
+    }
+
+    public void incrementTickCount(boolean onGround) {
+        tickCount++;
+        if (onGround) groundTickCount++;
+        if (tickCount > 400) { // reset every ~20s to keep ratio fresh
+            tickCount /= 2;
+            groundTickCount /= 2;
+        }
+    }
+
+    public double getGroundRatio() {
+        return tickCount > 0 ? (double) groundTickCount / tickCount : 1.0;
     }
 
     public void setGameMode(int gameMode) { this.gameMode = gameMode; }

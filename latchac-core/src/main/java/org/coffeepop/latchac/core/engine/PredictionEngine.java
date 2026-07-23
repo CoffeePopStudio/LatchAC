@@ -16,6 +16,9 @@ public final class PredictionEngine {
         simulator = provider;
     }
 
+    /** Returns the NMS simulator, or null if not initialized. */
+    public static SimulatorProvider getSimulator() { return simulator; }
+
     public static MotionBounds predict(LatchPlayer p, double slipperiness) {
         // Try NMS simulator first for maximum precision
         if (simulator != null) {

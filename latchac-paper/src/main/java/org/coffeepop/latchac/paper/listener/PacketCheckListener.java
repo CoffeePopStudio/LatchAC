@@ -54,6 +54,7 @@ public class PacketCheckListener extends PacketListenerAbstract {
                 PlayerData data = LatchAC.get().getDataManager().get(id);
                 if (data != null) {
                     data.getPlayer().addPacketTimestamp(System.nanoTime());
+                    data.getPlayer().incrementTickCount(snap.onGround());
                     snap.apply(data.getPlayer());
                     updateLiquidState(player, data);
                 }
@@ -78,7 +79,10 @@ public class PacketCheckListener extends PacketListenerAbstract {
         if (ct == PacketType.Play.Client.ANIMATION) {
             runOnMain(() -> {
                 PlayerData data = LatchAC.get().getDataManager().get(id);
-                if (data != null) data.getPlayer().setLastSwingTime(System.nanoTime());
+                if (data != null) {
+                    data.getPlayer().setLastSwingTime(System.nanoTime());
+                    data.getPlayer().addClickTimestamp(System.nanoTime());
+                }
             });
         }
     }

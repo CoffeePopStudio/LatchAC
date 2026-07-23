@@ -17,6 +17,8 @@ public class V26_1MotionSimulator implements SimulatorProvider {
     private static final double JUMP_VELOCITY = 0.42;
     private static final double SPRINT_FACTOR = 1.3;
     private static final double SNEAK_FACTOR = 0.3;
+    // From PhysicsConstants.groundSpeedPerTick formula
+    private static final double GROUND_SPEED_COEFF = 0.21168;
 
     @Override
     public double[] predict(Object platformPlayer, double lastDx, double lastDy, double lastDz,
@@ -52,5 +54,27 @@ public class V26_1MotionSimulator implements SimulatorProvider {
         }
 
         return new double[]{maxDx, maxDz, minDy, maxDy, grounded ? 1.0 : 0.0};
+    }
+
+    @Override
+    public double getTheoreticalMaxSpeed(Object platformPlayer, double slipperiness,
+                                          boolean sprinting, boolean sneaking) {
+        Player bukkitPlayer = (Player) platformPlayer;
+        LivingEntity entity = ((CraftPlayer) bukkitPlayer).getHandle();
+
+        float moveSpeed = entity.getSpeed();
+        if (sprinting) moveSpeed *= SPRINT_FACTOR;
+        if (sneaking) moveSpeed *= SNEAK_FACTOR;
+
+        // Minecraft ground movement formula:
+        // speed = coeff * attr * (1 - 0.91 * friction) * friction^3
+        return GROUND_SPEED_COEFF * moveSpeed * (1.0 - 0.91 * slipperiness) * Math.pow(slipperiness, 3);
+    }
+
+    @Override
+    public boolean isFallFlying(Object platformPlayer) {
+        Player bukkitPlayer = (Player) platformPlayer;
+        LivingEntity entity = ((CraftPlayer) bukkitPlayer).getHandle();
+        return entity.isFallFlying();
     }
 }
