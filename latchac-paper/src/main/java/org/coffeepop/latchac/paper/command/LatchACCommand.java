@@ -1,7 +1,8 @@
 package org.coffeepop.latchac.paper.command;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -19,8 +20,21 @@ public class LatchACCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         String senderId = sender instanceof Player p ? p.getUniqueId().toString() : "CONSOLE";
-        List<String> result = LatchAC.get().getCommandManager().dispatch(senderId, args);
-        for (String line : result) sender.sendMessage(line);
+
+        // Permission check for subcommands
+        if (args.length > 0) {
+            var subCmd = LatchAC.get().getCommandManager().getCommands().get(args[0].toLowerCase());
+            String perm = subCmd != null ? subCmd.permission() : null;
+            if (perm != null && !sender.hasPermission(perm)) {
+                sender.sendMessage(Component.text("You don't have permission.", NamedTextColor.RED));
+                return true;
+            }
+        }
+
+        List<Component> result = LatchAC.get().getCommandManager().dispatch(senderId, args);
+        for (Component line : result) {
+            sender.sendMessage(line);
+        }
         return true;
     }
 

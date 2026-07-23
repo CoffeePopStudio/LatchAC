@@ -1,5 +1,9 @@
 package org.coffeepop.latchac.core.command;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+
 import java.util.*;
 
 /**
@@ -20,11 +24,10 @@ public class CommandManager {
      * Platform layers should check permissions via {@link SubCommand#permission()}
      * before calling this method.
      */
-    public List<String> dispatch(String senderId, String[] args) {
+    public List<Component> dispatch(String senderId, String[] args) {
         if (args.length == 0) return help();
         SubCommand cmd = commands.get(args[0].toLowerCase());
-        if (cmd == null) return List.of("§cUnknown subcommand. " + helpLine());
-        // Platform layer should check: if (cmd.permission() != null && !senderHasPerm(senderId, cmd.permission()))
+        if (cmd == null) return List.of(Component.text("Unknown subcommand. " + helpLine(), NamedTextColor.RED));
         return cmd.execute(senderId, slice(args));
     }
 
@@ -47,18 +50,25 @@ public class CommandManager {
         return cmd.tabComplete(slice(args), onlinePlayers);
     }
 
-    private List<String> help() {
-        var lines = new ArrayList<String>();
-        lines.add("§8§m                  §r §bLatchAC §8§m                  ");
+    private List<Component> help() {
+        var lines = new ArrayList<Component>();
+        lines.add(Component.text()
+                .append(Component.text("──────────────────", NamedTextColor.DARK_GRAY, TextDecoration.STRIKETHROUGH))
+                .append(Component.text(" LatchAC ", NamedTextColor.AQUA))
+                .append(Component.text("──────────────────", NamedTextColor.DARK_GRAY, TextDecoration.STRIKETHROUGH))
+                .build());
         for (var cmd : commands.values()) {
-            lines.add(" §7/latchac §f" + cmd.name());
+            lines.add(Component.text()
+                    .append(Component.text("/latchac ", NamedTextColor.GRAY))
+                    .append(Component.text(cmd.name(), NamedTextColor.WHITE))
+                    .build());
         }
-        lines.add("§8§m                                              ");
+        lines.add(Component.text("                                              ", NamedTextColor.DARK_GRAY));
         return lines;
     }
 
     private String helpLine() {
-        return "§7Try: " + String.join(" | ", commands.keySet());
+        return String.join(" | ", commands.keySet());
     }
 
     private static String[] slice(String[] args) {

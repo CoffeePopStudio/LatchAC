@@ -1,5 +1,7 @@
 package org.coffeepop.latchac.core.command.impl;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.coffeepop.latchac.core.LatchAC;
 import org.coffeepop.latchac.core.command.SubCommand;
 
@@ -17,11 +19,14 @@ public class DebugCommand implements SubCommand {
     public String permission() { return "latchac.debug"; }
 
     @Override
-    public List<String> execute(String senderId, String[] args) {
+    public List<Component> execute(String senderId, String[] args) {
         var cfg = LatchAC.get().getConfigManager();
         boolean was = cfg.isDebug();
         cfg.set("debug", !was);
-        return List.of("§7Debug mode: " + (!was ? "§aON" : "§cOFF"));
+        return List.of(Component.text()
+                .append(Component.text("Debug mode: ", NamedTextColor.GRAY))
+                .append(Component.text(was ? "OFF" : "ON", was ? NamedTextColor.RED : NamedTextColor.GREEN))
+                .build());
     }
 
     @Override

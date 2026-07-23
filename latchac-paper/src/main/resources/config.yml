@@ -1,0 +1,7 @@
+# LatchAC Configuration
+# This file is auto-generated with defaults. Edit to customize.
+
+debug: false
+prefix: "&8[&bLatchAC&8]"
+alert-threshold: 20
+punish-threshold: 50

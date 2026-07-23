@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    api(rootProject.libs.adventure.api)
     compileOnly(rootProject.libs.paper.api)
 }
 

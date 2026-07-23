@@ -1,8 +1,11 @@
 package org.coffeepop.latchac.core.command.impl;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.coffeepop.latchac.core.LatchAC;
 import org.coffeepop.latchac.core.command.SubCommand;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,20 +19,31 @@ public class VLCommand implements SubCommand {
     public String name() { return "vl"; }
 
     @Override
-    public List<String> execute(String senderId, String[] args) {
-        if (args.length == 0) return List.of("§cUsage: /latchac vl <player>");
+    public List<Component> execute(String senderId, String[] args) {
+        if (args.length == 0) return List.of(
+                Component.text("Usage: /latchac vl <player>", NamedTextColor.RED));
 
         UUID target = findPlayer(args[0]);
-        if (target == null) return List.of("§cPlayer not found: " + args[0]);
+        if (target == null) return List.of(
+                Component.text("Player not found: " + args[0], NamedTextColor.RED));
 
         Map<String, Integer> vls = LatchAC.get().getViolationHandler().getAllVLs(target);
-        if (vls.isEmpty()) return List.of("§a" + args[0] + " has no violations.");
+        if (vls.isEmpty()) return List.of(
+                Component.text(args[0] + " has no violations.", NamedTextColor.GREEN));
 
-        var lines = new java.util.ArrayList<String>();
-        lines.add("§7VL for §f" + args[0] + "§7:");
+        var lines = new ArrayList<Component>();
+        lines.add(Component.text()
+                .append(Component.text("VL for ", NamedTextColor.GRAY))
+                .append(Component.text(args[0], NamedTextColor.WHITE))
+                .append(Component.text(":", NamedTextColor.GRAY))
+                .build());
         vls.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .forEach(e -> lines.add("  §7" + e.getKey() + " §8→ §f" + e.getValue()));
+                .forEach(e -> lines.add(Component.text()
+                        .append(Component.text("  " + e.getKey(), NamedTextColor.GRAY))
+                        .append(Component.text(" → ", NamedTextColor.DARK_GRAY))
+                        .append(Component.text(String.valueOf(e.getValue()), NamedTextColor.WHITE))
+                        .build()));
         return lines;
     }
 
