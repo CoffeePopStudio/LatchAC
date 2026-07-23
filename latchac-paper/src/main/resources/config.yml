@@ -1,7 +1,20 @@
-# LatchAC Configuration
+# LatchAC V2 Configuration
 # This file is auto-generated with defaults. Edit to customize.
 
 debug: false
 prefix: "&8[&bLatchAC&8]"
 alert-threshold: 20
 punish-threshold: 50
+
+# Baseline Profiler settings
+baseline:
+  # Source: local (self-learning only), community (remote only), both (merge)
+  source: local
+  # Trust level for remote data: strict (×0.3), moderate (normal), open (×1.5)
+  trust-level: moderate
+  # Remote community baseline URL (if source is community or both)
+  community-url: ""
+  # Auto-export population baseline for community contribution
+  export-enabled: false
+  # Admin UUIDs that bypass admission gating (directly whitelisted into population pool)
+  admin-whitelist: []
