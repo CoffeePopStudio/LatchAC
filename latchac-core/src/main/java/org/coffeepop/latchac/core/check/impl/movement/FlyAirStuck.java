@@ -29,10 +29,6 @@ public class FlyAirStuck extends Check {
     public void onCheck(LatchPlayer p) {
         if (!p.hasPosition()) return;
         if (p.isInVehicle()) return;
-        if (p.shouldExemptMovement()) {
-            states.remove(p.getUniqueId());
-            return;
-        }
 
         if (p.isOnGround()) {
             states.remove(p.getUniqueId());

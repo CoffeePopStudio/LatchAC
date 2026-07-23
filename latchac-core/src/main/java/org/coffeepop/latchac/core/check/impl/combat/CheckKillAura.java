@@ -18,8 +18,8 @@ import java.util.*;
 public class CheckKillAura extends Check {
 
     private static final int ROTATION_HISTORY = 40;
-    private static final double ENTROPY_THRESHOLD = 2.0;
-    private static final int LOW_ENTROPY_TICKS_THRESHOLD = 20;
+    private static final double ENTROPY_THRESHOLD = 2.5;
+    private static final int LOW_ENTROPY_TICKS_THRESHOLD = 12;
 
     private static final double SNAP_SPEED_HIGH = 15.0;
     private static final double SNAP_SPEED_LOW = 0.5;

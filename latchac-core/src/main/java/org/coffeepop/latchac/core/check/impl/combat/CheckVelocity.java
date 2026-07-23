@@ -57,20 +57,20 @@ public class CheckVelocity extends Check {
         if (s.tickSinceVelocity < TRACK_TICKS) return;
 
         // ---- A. Expected vs Actual Ratio ----
-        if (Math.abs(s.pendingVX) + Math.abs(s.pendingVZ) > 0.01) {
-            double totalExpected = Math.hypot(s.pendingVX, s.pendingVZ);
-            double totalActual = Math.hypot(s.accumDX, s.accumDZ);
-            if (totalExpected > 0.01) {
-                double ratio = totalActual / totalExpected;
-                if (ratio < RATIO_MIN || ratio > RATIO_MAX) {
-                    flag(p, "ratio=" + String.format("%.2f", ratio)
-                            + " expected=" + String.format("%.3f", totalExpected));
-                }
+        double totalExpected = Math.hypot(s.pendingVX, s.pendingVZ);
+        double totalActual = Math.hypot(s.accumDX, s.accumDZ);
+        if (totalExpected > 0.05) {
+            double ratio = totalActual / totalExpected;
+            if (totalActual < 0.01) {
+                flag(p, "zero_ratio expected=" + String.format("%.3f", totalExpected));
+            } else if (ratio < RATIO_MIN || ratio > RATIO_MAX) {
+                flag(p, "ratio=" + String.format("%.2f", ratio)
+                        + " expected=" + String.format("%.3f", totalExpected));
+            }
 
-                double dotProduct = s.pendingVX * s.accumDX + s.pendingVZ * s.accumDZ;
-                if (dotProduct < -0.01) {
-                    flag(p, "reversal dot=" + String.format("%.4f", dotProduct));
-                }
+            double dotProduct = s.pendingVX * s.accumDX + s.pendingVZ * s.accumDZ;
+            if (dotProduct < -0.01) {
+                flag(p, "reversal dot=" + String.format("%.4f", dotProduct));
             }
         }
 
