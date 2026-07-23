@@ -1,3 +1,3 @@
-rootProject.name = "Latch AntiCheat"
+rootProject.name = "LatchAC"
 
 include("latchac-core", "latchac-paper")

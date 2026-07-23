@@ -4,6 +4,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+/**
+ * In-memory configuration manager.
+ * <p>
+ * Currently uses defaults defined in {@link #loadDefaults()}.
+ * Can be extended to load from YAML / JSON files.
+ */
 public class ConfigManager {
 
     private final Logger logger;
@@ -11,6 +17,7 @@ public class ConfigManager {
 
     public ConfigManager(Logger logger) { this.logger = logger; }
 
+    /** Loads default configuration values. */
     public void loadDefaults() {
         config.put("debug", false);
         config.put("prefix", "&8[&bLatchAC&8]");
@@ -18,6 +25,8 @@ public class ConfigManager {
         config.put("punish-threshold", 50);
         logger.info("ConfigManager loaded defaults.");
     }
+
+    // ---- Generic access ----
 
     @SuppressWarnings("unchecked")
     public <T> T get(String key, T defaultValue) {
@@ -27,8 +36,17 @@ public class ConfigManager {
 
     public void set(String key, Object value) { config.put(key, value); }
 
+    // ---- Convenience ----
+
+    /** Whether debug logging is enabled. */
     public boolean isDebug() { return get("debug", false); }
+
+    /** Plugin message prefix for chat output. */
     public String getPrefix() { return get("prefix", "&8[&bLatchAC&8]"); }
+
+    /** VL threshold for staff alerts. */
     public int getAlertThreshold() { return get("alert-threshold", 20); }
+
+    /** VL threshold for automatic punishment. */
     public int getPunishThreshold() { return get("punish-threshold", 50); }
 }

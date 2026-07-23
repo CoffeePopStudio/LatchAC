@@ -21,6 +21,10 @@ tasks {
         }
     }
 
+    jar {
+        from(project(":latchac-core").sourceSets.main.get().output)
+    }
+
     runServer {
         minecraftVersion(rootProject.libs.versions.minecraft.get())
         jvmArgs("-Xms2G", "-Xmx2G", "-Dcom.mojang.eula.agree=true")

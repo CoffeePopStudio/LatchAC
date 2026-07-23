@@ -4,6 +4,9 @@ import org.coffeepop.latchac.core.check.CheckType;
 
 import java.util.UUID;
 
+/**
+ * A single violation record produced when a check flags a player.
+ */
 public class Violation {
 
     private final UUID playerId;

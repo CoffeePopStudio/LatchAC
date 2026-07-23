@@ -1,4 +1,4 @@
-name: "Latch AntiCheat"
+name: LatchAC
 version: "${version}"
 main: org.coffeepop.latchac.paper.LatchACPlugin
 api-version: "1.21"
@@ -8,3 +8,8 @@ prefix: LatchAC
 folia-supported: true
 depend:
   - packetevents
+commands:
+  latchac:
+    description: LatchAC main command
+    usage: /latchac <vl|check|debug>
+    aliases: [lac]

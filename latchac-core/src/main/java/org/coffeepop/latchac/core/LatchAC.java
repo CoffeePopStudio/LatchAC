@@ -2,12 +2,20 @@ package org.coffeepop.latchac.core;
 
 import org.coffeepop.latchac.core.check.Check;
 import org.coffeepop.latchac.core.check.CheckRegistry;
+import org.coffeepop.latchac.core.check.CheckScanner;
+import org.coffeepop.latchac.core.command.CommandManager;
+import org.coffeepop.latchac.core.command.impl.CheckCommand;
+import org.coffeepop.latchac.core.command.impl.DebugCommand;
+import org.coffeepop.latchac.core.command.impl.VLCommand;
 import org.coffeepop.latchac.core.config.ConfigManager;
 import org.coffeepop.latchac.core.data.DataManager;
 import org.coffeepop.latchac.core.violation.ViolationHandler;
 
 import java.util.logging.Logger;
 
+/**
+ * Core API entry point.
+ */
 public final class LatchAC {
 
     private static LatchAC instance;
@@ -17,6 +25,7 @@ public final class LatchAC {
     private final CheckRegistry checkRegistry;
     private final DataManager dataManager;
     private final ViolationHandler violationHandler;
+    private final CommandManager commandManager;
 
     private LatchAC(Logger logger) {
         this.logger = logger;
@@ -24,12 +33,17 @@ public final class LatchAC {
         this.checkRegistry = new CheckRegistry();
         this.dataManager = new DataManager();
         this.violationHandler = new ViolationHandler(logger);
+        this.commandManager = new CommandManager();
     }
 
     public static void init(Logger logger) {
         if (instance != null) throw new IllegalStateException("LatchAC already initialized");
         instance = new LatchAC(logger);
         instance.configManager.loadDefaults();
+        instance.commandManager.register(new VLCommand());
+        instance.commandManager.register(new CheckCommand());
+        instance.commandManager.register(new DebugCommand());
+        CheckScanner.scanAndRegister(logger);
     }
 
     public static LatchAC get() {
@@ -42,6 +56,7 @@ public final class LatchAC {
     public CheckRegistry getCheckRegistry() { return checkRegistry; }
     public DataManager getDataManager() { return dataManager; }
     public ViolationHandler getViolationHandler() { return violationHandler; }
+    public CommandManager getCommandManager() { return commandManager; }
 
     public void registerCheck(Check check) { checkRegistry.register(check); }
 
