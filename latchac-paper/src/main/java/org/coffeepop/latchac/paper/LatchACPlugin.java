@@ -27,6 +27,7 @@ public final class LatchACPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         LatchAC.init(getLogger());
+        LatchAC.get().initBaselineProfiler(getDataFolder());
 
         // Load platform YAML config into core ConfigManager
         var coreCfg = LatchAC.get().getConfigManager();

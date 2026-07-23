@@ -13,6 +13,9 @@ import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.coffeepop.latchac.core.LatchAC;
 import org.coffeepop.latchac.core.player.LatchPlayer;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Player lifecycle + vehicle + gameMode state sync.
  */
@@ -25,11 +28,22 @@ public class PlayerListener implements Listener {
         lp.setInVehicle(p.isInsideVehicle());
         syncGameMode(lp, p);
         LatchAC.get().getDataManager().addPlayer(lp);
+        LatchAC.get().getBaselineProfiler().onPlayerJoin(p.getUniqueId());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         var id = e.getPlayer().getUniqueId();
+        var data = LatchAC.get().getDataManager().get(id);
+        if (data != null) {
+            var vl = LatchAC.get().getViolationHandler().getAllVLs(id);
+            int totalVL = vl.values().stream().mapToInt(Integer::intValue).sum();
+            long onlineMs = System.currentTimeMillis() - data.getPlayer().getLastMoveTime();
+            Map<String, Double> snapshots = new HashMap<>();
+            snapshots.put("packetInterval", computePacketInterval(data.getPlayer()
+                    .getPacketTimestamps()));
+            LatchAC.get().getBaselineProfiler().onPlayerQuit(id, totalVL, onlineMs, snapshots);
+        }
         LatchAC.get().getCheckRegistry().onPlayerQuit(id);
         LatchAC.get().getDataManager().remove(id);
         LatchAC.get().getViolationHandler().reset(id);
@@ -82,5 +96,13 @@ public class PlayerListener implements Listener {
     private static void syncGameMode(LatchPlayer lp, org.bukkit.entity.Player p) {
         lp.setGameMode(p.getGameMode().ordinal());
         lp.setAllowFlight(p.getAllowFlight());
+    }
+
+    private static double computePacketInterval(java.util.Deque<Long> timestamps) {
+        if (timestamps.size() < 2) return 50.0;
+        var it = timestamps.descendingIterator();
+        long a = it.next();
+        long b = it.next();
+        return (a - b) / 1_000_000.0;
     }
 }

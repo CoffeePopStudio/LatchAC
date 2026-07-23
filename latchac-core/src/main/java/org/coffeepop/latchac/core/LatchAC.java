@@ -9,8 +9,10 @@ import org.coffeepop.latchac.core.command.impl.DebugCommand;
 import org.coffeepop.latchac.core.command.impl.VLCommand;
 import org.coffeepop.latchac.core.config.ConfigManager;
 import org.coffeepop.latchac.core.data.DataManager;
+import org.coffeepop.latchac.core.baseline.BaselineProfiler;
 import org.coffeepop.latchac.core.violation.ViolationHandler;
 
+import java.io.File;
 import java.util.logging.Logger;
 
 /**
@@ -26,6 +28,7 @@ public final class LatchAC {
     private final DataManager dataManager;
     private final ViolationHandler violationHandler;
     private final CommandManager commandManager;
+    private BaselineProfiler baselineProfiler;
 
     private LatchAC(Logger logger) {
         this.logger = logger;
@@ -59,6 +62,14 @@ public final class LatchAC {
     public DataManager getDataManager() { return dataManager; }
     public ViolationHandler getViolationHandler() { return violationHandler; }
     public CommandManager getCommandManager() { return commandManager; }
+
+    public void initBaselineProfiler(File dataFolder) {
+        this.baselineProfiler = new BaselineProfiler(dataFolder);
+    }
+
+    public BaselineProfiler getBaselineProfiler() {
+        return baselineProfiler;
+    }
 
     public void registerCheck(Check check) { checkRegistry.register(check); }
 
