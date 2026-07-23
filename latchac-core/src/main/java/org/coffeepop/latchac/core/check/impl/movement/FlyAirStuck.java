@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FlyAirStuck extends Check {
 
     private static final int MIN_TICKS = 10;
-    private static final double MIN_TOTAL_DY = 0.04;
+    private static final double MIN_TOTAL_DY = 0.12;
     private final Map<UUID, AirState> states = new ConcurrentHashMap<>();
 
     public FlyAirStuck() {}
@@ -29,6 +29,10 @@ public class FlyAirStuck extends Check {
     public void onCheck(LatchPlayer p) {
         if (!p.hasPosition()) return;
         if (p.isInVehicle()) return;
+        if (p.shouldExemptMovement()) {
+            states.remove(p.getUniqueId());
+            return;
+        }
 
         if (p.isOnGround()) {
             states.remove(p.getUniqueId());
