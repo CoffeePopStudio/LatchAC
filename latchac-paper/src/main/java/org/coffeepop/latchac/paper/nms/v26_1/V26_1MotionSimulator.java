@@ -1,13 +1,13 @@
 package org.coffeepop.latchac.paper.nms.v26_1;
 
+import net.minecraft.world.entity.LivingEntity;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.coffeepop.latchac.core.engine.SimulatorProvider;
 
-import java.lang.reflect.Method;
-
 /**
- * Paper 26.1 NMS motion prediction using Mojang-mapped reflection.
- * MC 26.1+ ships deobfuscated — class/method names are directly accessible.
+ * Paper 1.21.3 NMS motion prediction via paperweight-userdev.
+ * Direct Mojang-mapped access — no reflection needed.
  */
 public class V26_1MotionSimulator implements SimulatorProvider {
 
@@ -16,63 +16,33 @@ public class V26_1MotionSimulator implements SimulatorProvider {
     private static final double GRAVITY = -0.08;
     private static final double JUMP_VELOCITY = 0.42;
     private static final double SPRINT_FACTOR = 1.3;
-    private static final double DEFAULT_SLIPPERINESS = 0.6;
-
-    private Method getSpeedMethod;
-    private Method getBlockSpeedFactorMethod;
-
-    public V26_1MotionSimulator() {
-        try {
-            // MC 26.1+ Mojang-mapped classes
-            Class<?> livingEntityClass = Class.forName("net.minecraft.world.entity.LivingEntity");
-            getSpeedMethod = livingEntityClass.getDeclaredMethod("getSpeed");
-            getSpeedMethod.setAccessible(true);
-            getBlockSpeedFactorMethod = livingEntityClass.getDeclaredMethod("getBlockSpeedFactor");
-            getBlockSpeedFactorMethod.setAccessible(true);
-        } catch (Exception e) {
-            // Fall back to constants if reflection fails
-        }
-    }
+    private static final double SNEAK_FACTOR = 0.3;
 
     @Override
     public double[] predict(Object platformPlayer, double lastDx, double lastDy, double lastDz,
                             boolean onGround, boolean sprinting, boolean sneaking) {
-        Player player = (Player) platformPlayer;
+        Player bukkitPlayer = (Player) platformPlayer;
+        LivingEntity entity = ((CraftPlayer) bukkitPlayer).getHandle();
 
-        // Get vanilla movement speed attribute
-        double moveSpeed = 0.1; // default: 0.7 attr → 0.1 base
-        double slipperiness = DEFAULT_SLIPPERINESS;
+        float moveSpeed = entity.getSpeed();
+        // getBlockSpeedFactor is protected — default to 0.6 (applies to most blocks)
+        float slipperiness = 0.6f;
 
-        try {
-            // Get underlying NMS Entity
-            var craftPlayerHandle = player.getClass().getMethod("getHandle").invoke(player);
-            if (getSpeedMethod != null) {
-                moveSpeed = (float) getSpeedMethod.invoke(craftPlayerHandle);
-            }
-            if (getBlockSpeedFactorMethod != null) {
-                slipperiness = (float) getBlockSpeedFactorMethod.invoke(craftPlayerHandle);
-            }
-        } catch (Exception ignored) {}
-
-        // Apply sprint/sneak modifiers
         if (sprinting) moveSpeed *= SPRINT_FACTOR;
-        if (sneaking) moveSpeed *= 0.3;
+        if (sneaking) moveSpeed *= SNEAK_FACTOR;
 
         double maxDx, maxDz, minDy, maxDy;
         boolean grounded;
 
         if (onGround) {
-            // Ground physics: friction + strafe acceleration
             double friction = GROUND_FRICTION * slipperiness;
-            // Maximum possible: current speed preserved by friction + max acceleration
-            double accel = moveSpeed * 0.98; // approximate strafe factor
+            double accel = moveSpeed * 0.98;
             maxDx = Math.abs(lastDx) * friction + accel;
             maxDz = Math.abs(lastDz) * friction + accel;
             minDy = 0;
             maxDy = JUMP_VELOCITY;
             grounded = true;
         } else {
-            // Air physics: drag + minimal acceleration
             maxDx = Math.abs(lastDx) * AIR_FRICTION + moveSpeed * 0.02;
             maxDz = Math.abs(lastDz) * AIR_FRICTION + moveSpeed * 0.02;
             double predictedDy = lastDy + GRAVITY;
