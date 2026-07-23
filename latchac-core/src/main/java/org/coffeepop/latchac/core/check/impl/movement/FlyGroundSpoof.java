@@ -26,7 +26,7 @@ public class FlyGroundSpoof extends Check {
         if (p.shouldExemptMovement()) { spoofTicks.remove(p.getUniqueId()); return; }
         if (!p.isOnGround()) { spoofTicks.remove(p.getUniqueId()); return; }
 
-        var bounds = PredictionEngine.predict(p, PhysicsConstants.DEFAULT_SLIPPERINESS);
+        var bounds = PredictionEngine.predict(p, p.getFootSlipperiness());
 
         if (!bounds.groundedByPhysics()) {
             int ticks = spoofTicks.merge(p.getUniqueId(), 1, Integer::sum);

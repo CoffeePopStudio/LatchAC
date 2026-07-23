@@ -116,6 +116,17 @@ public class PacketCheckListener extends PacketListenerAbstract {
     private void updateLiquidState(Player player, PlayerData data) {
         var block = player.getLocation().getBlock();
         data.getPlayer().setInLiquid(block.isLiquid());
+        var below = player.getLocation().subtract(0, 0.1, 0).getBlock();
+        data.getPlayer().setFootSlipperiness(getSlipperiness(below));
+    }
+
+    /** Rough slipperiness lookup — verified values from Entity.move() */
+    private static double getSlipperiness(org.bukkit.block.Block block) {
+        return switch (block.getType()) {
+            case ICE, PACKED_ICE, BLUE_ICE, FROSTED_ICE -> 0.98;
+            case SLIME_BLOCK -> 0.8;
+            default -> 0.6;
+        };
     }
 
     // ---- Movement snapshot ----

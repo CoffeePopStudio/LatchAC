@@ -26,7 +26,7 @@ public class FlyAirStuck extends Check {
         if (p.shouldExemptMovement()) { hoverTicks.remove(p.getUniqueId()); return; }
         if (p.isOnGround()) { hoverTicks.remove(p.getUniqueId()); return; }
 
-        var bounds = PredictionEngine.predict(p, PhysicsConstants.DEFAULT_SLIPPERINESS);
+        var bounds = PredictionEngine.predict(p, p.getFootSlipperiness());
 
         if (!bounds.groundedByPhysics() && Math.abs(p.getDeltaY()) < 0.005) {
             int ticks = hoverTicks.merge(p.getUniqueId(), 1, Integer::sum);

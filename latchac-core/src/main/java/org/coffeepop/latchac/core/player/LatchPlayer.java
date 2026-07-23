@@ -52,6 +52,7 @@ public class LatchPlayer {
     private String containerType;
     private boolean inVehicle;
     private boolean inLiquid;
+    private double footSlipperiness = 0.6;
     private long lastMoveTime;
 
     // ---- Combat ----
@@ -138,6 +139,7 @@ public class LatchPlayer {
 
     public void setInVehicle(boolean inVehicle) { this.inVehicle = inVehicle; }
     public void setInLiquid(boolean inLiquid) { this.inLiquid = inLiquid; }
+    public void setFootSlipperiness(double s) { this.footSlipperiness = s; }
 
     // Combat setters/getters
     public long getLastAttackTime() { return lastAttackTime; }
@@ -217,6 +219,7 @@ public class LatchPlayer {
     public String getContainerType() { return containerType; }
     public boolean isInVehicle() { return inVehicle; }
     public boolean isInLiquid() { return inLiquid; }
+    public double getFootSlipperiness() { return footSlipperiness; }
     public long getLastMoveTime() { return lastMoveTime; }
 
     public boolean movedRecently(long ms) {
