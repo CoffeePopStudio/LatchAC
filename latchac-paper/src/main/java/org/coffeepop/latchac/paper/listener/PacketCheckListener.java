@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,16 +53,59 @@ public class PacketCheckListener extends PacketListenerAbstract {
             runOnMain(() -> {
                 PlayerData data = LatchAC.get().getDataManager().get(id);
                 if (data != null) {
+                    data.getPlayer().addPacketTimestamp(System.nanoTime());
                     snap.apply(data.getPlayer());
                     updateLiquidState(player, data);
                 }
+            });
+        }
+
+        // Intercept attack packets for KillAura
+        if (ct == PacketType.Play.Client.INTERACT_ENTITY) {
+            var wrapper = new WrapperPlayClientInteractEntity(event);
+            int targetId = wrapper.getEntityId();
+            var interactAction = wrapper.getAction();
+            boolean isAttack = interactAction == WrapperPlayClientInteractEntity.InteractAction.ATTACK;
+            runOnMain(() -> {
+                PlayerData data = LatchAC.get().getDataManager().get(id);
+                if (data != null && isAttack) {
+                    data.getPlayer().setLastAttackTime(System.nanoTime());
+                    data.getPlayer().setLastTargetId(targetId);
+                    LatchAC.get().getCheckRegistry().runAttackChecks(data.getPlayer(), targetId);
+                }
+            });
+        }
+        if (ct == PacketType.Play.Client.ANIMATION) {
+            runOnMain(() -> {
+                PlayerData data = LatchAC.get().getDataManager().get(id);
+                if (data != null) data.getPlayer().setLastSwingTime(System.nanoTime());
             });
         }
     }
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        // No-op: container tracking moved to Bukkit InventoryOpenEvent/InventoryCloseEvent
+        if (event.isCancelled()) return;
+        Player player = (Player) event.getPlayer();
+        if (player == null) return;
+
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
+            var wrapper = new WrapperPlayServerEntityVelocity(event);
+            int entityId = wrapper.getEntityId();
+            if (entityId == player.getEntityId()) {
+                double vx = wrapper.getVelocity().getX() / 8000.0;
+                double vy = wrapper.getVelocity().getY() / 8000.0;
+                double vz = wrapper.getVelocity().getZ() / 8000.0;
+                UUID id = player.getUniqueId();
+                runOnMain(() -> {
+                    PlayerData data = LatchAC.get().getDataManager().get(id);
+                    if (data != null) {
+                        data.getPlayer().setPendingVelocity(vx, vy, vz);
+                        LatchAC.get().getCheckRegistry().runVelocityChecks(data.getPlayer(), vx, vy, vz);
+                    }
+                });
+            }
+        }
     }
 
     private void runOnMain(Runnable r) {
