@@ -26,11 +26,10 @@ public class PopulationBaseline {
     }
 
     private void initHardcodedSeeds() {
-        hardcodedSeeds.put("packetInterval", new double[]{50.0, 10.0});
+        hardcodedSeeds.put("packetRate", new double[]{20.0, 3.0});
         hardcodedSeeds.put("rotationVariance", new double[]{3.0, 1.5});
         hardcodedSeeds.put("clickIntervalCV", new double[]{0.4, 0.15});
         hardcodedSeeds.put("swingAttackDelay", new double[]{80.0, 30.0});
-        hardcodedSeeds.put("packetIntervalStd", new double[]{15.0, 5.0});
     }
 
     private void loadFromStorage() {

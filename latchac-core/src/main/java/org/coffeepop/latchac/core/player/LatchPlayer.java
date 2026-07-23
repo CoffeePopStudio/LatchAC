@@ -166,6 +166,19 @@ public class LatchPlayer {
     }
     public java.util.Deque<Long> getPacketTimestamps() { return packetTimestamps; }
 
+    /**
+     * Counts movement packets received in the last second.
+     * Normal: ~20 pkt/s. Stationary vanilla: ~1 pkt/s. Timer speed: >21 pkt/s.
+     */
+    public double getPacketRate() {
+        if (packetTimestamps.size() < 2) return 20.0;
+        long cutoff = packetTimestamps.peekLast() - 1_000_000_000L;
+        int count = 0;
+        var it = packetTimestamps.descendingIterator();
+        while (it.hasNext() && it.next() > cutoff) count++;
+        return (double) count;
+    }
+
     public void setGameMode(int gameMode) { this.gameMode = gameMode; }
     public int getGameMode() { return gameMode; }
 
