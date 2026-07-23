@@ -13,11 +13,27 @@ public class CommandManager {
         commands.put(cmd.name().toLowerCase(), cmd);
     }
 
+    /**
+     * Dispatches a command to the matching subcommand.
+     * <p>
+     * NOTE: This method does not check {@link SubCommand#permission()}.
+     * Platform layers should check permissions via {@link SubCommand#permission()}
+     * before calling this method.
+     */
     public List<String> dispatch(String senderId, String[] args) {
         if (args.length == 0) return help();
         SubCommand cmd = commands.get(args[0].toLowerCase());
         if (cmd == null) return List.of("§cUnknown subcommand. " + helpLine());
+        // Platform layer should check: if (cmd.permission() != null && !senderHasPerm(senderId, cmd.permission()))
         return cmd.execute(senderId, slice(args));
+    }
+
+    /**
+     * Returns the registered commands map for external permission checking.
+     * @return unmodifiable view of the commands map
+     */
+    public Map<String, SubCommand> getCommands() {
+        return Collections.unmodifiableMap(commands);
     }
 
     public List<String> tabComplete(String[] args, List<String> onlinePlayers) {

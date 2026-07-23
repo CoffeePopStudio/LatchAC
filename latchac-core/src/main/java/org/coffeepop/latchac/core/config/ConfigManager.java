@@ -7,8 +7,8 @@ import java.util.logging.Logger;
 /**
  * In-memory configuration manager.
  * <p>
- * Currently uses defaults defined in {@link #loadDefaults()}.
- * Can be extended to load from YAML / JSON files.
+ * Call {@link #loadDefaults()} first, then {@link #load(Map)} with
+ * platform-provided values (e.g. from YAML) to override.
  */
 public class ConfigManager {
 
@@ -26,6 +26,20 @@ public class ConfigManager {
         logger.info("ConfigManager loaded defaults.");
     }
 
+    /**
+     * Loads configuration from a map (e.g. from platform YAML parsing).
+     * Call after {@link #loadDefaults()}; values not in the map keep defaults.
+     */
+    public void load(Map<String, Object> values) {
+        config.putAll(values);
+        logger.info("ConfigManager loaded " + values.size() + " values from platform.");
+    }
+
+    /** Returns an immutable snapshot of all configuration entries. */
+    public Map<String, Object> getAll() {
+        return Map.copyOf(config);
+    }
+
     // ---- Generic access ----
 
     @SuppressWarnings("unchecked")
@@ -38,15 +52,8 @@ public class ConfigManager {
 
     // ---- Convenience ----
 
-    /** Whether debug logging is enabled. */
     public boolean isDebug() { return get("debug", false); }
-
-    /** Plugin message prefix for chat output. */
     public String getPrefix() { return get("prefix", "&8[&bLatchAC&8]"); }
-
-    /** VL threshold for staff alerts. */
     public int getAlertThreshold() { return get("alert-threshold", 20); }
-
-    /** VL threshold for automatic punishment. */
     public int getPunishThreshold() { return get("punish-threshold", 50); }
 }

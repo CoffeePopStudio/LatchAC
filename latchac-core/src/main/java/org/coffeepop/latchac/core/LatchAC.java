@@ -44,6 +44,8 @@ public final class LatchAC {
         instance.commandManager.register(new CheckCommand());
         instance.commandManager.register(new DebugCommand());
         CheckScanner.scanAndRegister(logger);
+        // Wire callbacks AFTER all checks are registered and DataManager is ready
+        instance.checkRegistry.wireCallbacks();
     }
 
     public static LatchAC get() {

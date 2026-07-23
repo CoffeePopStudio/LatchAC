@@ -23,7 +23,8 @@ public final class CheckScanner {
 
     public static void scanAndRegister(Logger logger) {
         if (!(LatchAC.class.getClassLoader() instanceof URLClassLoader ucl)) {
-            logger.warning("CheckScanner: classloader is not URLClassLoader");
+            logger.warning("CheckScanner: classloader is not URLClassLoader — " +
+                    "automatic JAR scanning unavailable. Use CheckScanner.registerManually() as fallback.");
             return;
         }
         for (URL url : ucl.getURLs()) {
@@ -32,6 +33,23 @@ public final class CheckScanner {
                 if (path.endsWith(".jar")) scanJar(path, logger);
             } catch (Exception e) {
                 logger.warning("CheckScanner: bad URL " + url);
+            }
+        }
+    }
+
+    /**
+     * Manual fallback for registering checks when JAR scanning is unavailable.
+     * Call this after LatchAC.init() if scanAndRegister logged a warning.
+     */
+    @SafeVarargs
+    public static void registerManually(Logger logger, Class<? extends Check>... checkClasses) {
+        for (Class<? extends Check> clazz : checkClasses) {
+            try {
+                Check check = clazz.getDeclaredConstructor().newInstance();
+                LatchAC.get().registerCheck(check);
+                logger.info("CheckScanner: manually registered " + check.getName());
+            } catch (Exception e) {
+                logger.warning("CheckScanner: failed to manually register " + clazz.getName());
             }
         }
     }

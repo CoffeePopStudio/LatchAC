@@ -14,6 +14,9 @@ public class DebugCommand implements SubCommand {
     public String name() { return "debug"; }
 
     @Override
+    public String permission() { return "latchac.debug"; }
+
+    @Override
     public List<String> execute(String senderId, String[] args) {
         var cfg = LatchAC.get().getConfigManager();
         boolean was = cfg.isDebug();

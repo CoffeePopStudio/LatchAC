@@ -5,6 +5,7 @@ import org.coffeepop.latchac.core.data.PlayerData;
 import org.coffeepop.latchac.core.player.LatchPlayer;
 import org.coffeepop.latchac.core.violation.Violation;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
 /**
@@ -59,6 +60,32 @@ public abstract class Check {
      */
     public void onCheck(LatchPlayer player) {}
 
+    /**
+     * Called when a player quits. Override to clean up per-player state maps.
+     * Default no-op.
+     */
+    public void onQuit(UUID playerId) {}
+
+    /**
+     * Called when the player attacks an entity. Override for combat checks.
+     * Default no-op.
+     *
+     * @param player   the attacking player
+     * @param entityId the target entity's network ID
+     */
+    public void onAttack(LatchPlayer player, int entityId) {}
+
+    /**
+     * Called when the server sends a velocity (knockback) packet to the player.
+     * Override for velocity checks. Default no-op.
+     *
+     * @param player the player receiving velocity
+     * @param vx     velocity X component
+     * @param vy     velocity Y component
+     * @param vz     velocity Z component
+     */
+    public void onVelocity(LatchPlayer player, double vx, double vy, double vz) {}
+
     protected void flag(PlayerData data, String detail) {
         Violation v = new Violation(data.getPlayerId(), this.name, this.type, detail);
         LatchAC.get().getViolationHandler().handle(v);
@@ -84,10 +111,18 @@ public abstract class Check {
         player.setback();
     }
 
+    private static final ThreadLocal<Boolean> SETBACK_GUARD = ThreadLocal.withInitial(() -> false);
+
     /** Flag + setback in one call. Increments VL AND teleports back. */
     protected void flagAndSetback(LatchPlayer player, String detail) {
+        if (SETBACK_GUARD.get()) return;
         flag(player, detail);
-        player.setback();
+        SETBACK_GUARD.set(true);
+        try {
+            player.setback();
+        } finally {
+            SETBACK_GUARD.set(false);
+        }
     }
 
     protected void debug(PlayerData data, String detail) {

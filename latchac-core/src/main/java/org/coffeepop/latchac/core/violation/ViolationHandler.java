@@ -22,6 +22,7 @@ public class ViolationHandler {
     private static final int ALERT_THRESHOLD = 20;
     private static final int PUNISH_THRESHOLD = 50;
     private static final long DECAY_MS = 60_000;
+    private static final long STALE_MS = 600_000; // 10 min — auto-cleanup stale entries
 
     private final Logger logger;
     private final Map<UUID, Map<String, Integer>> playerVLs = new ConcurrentHashMap<>();
@@ -87,5 +88,20 @@ public class ViolationHandler {
     public void reset(UUID pid) {
         playerVLs.remove(pid);
         lastDecay.remove(pid);
+    }
+
+    /**
+     * Removes VL data for players not seen in {@value #STALE_MS}ms.
+     * Call periodically from the platform (e.g. every 5 min) or on quit.
+     */
+    public void cleanupStaleEntries() {
+        long cutoff = System.currentTimeMillis() - STALE_MS;
+        lastDecay.entrySet().removeIf(e -> {
+            if (e.getValue() < cutoff) {
+                playerVLs.remove(e.getKey());
+                return true;
+            }
+            return false;
+        });
     }
 }

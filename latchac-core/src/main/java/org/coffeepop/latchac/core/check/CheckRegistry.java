@@ -20,7 +20,11 @@ public class CheckRegistry {
 
     public CheckRegistry() {
         for (CheckType t : CheckType.values()) checksByType.put(t, new CopyOnWriteArrayList<>());
-        LatchPlayer.onDataUpdate = this::runChecks;
+    }
+
+    /** Wires the data update callback. Called explicitly from LatchAC.init() after full initialization. */
+    public void wireCallbacks() {
+        LatchPlayer.setOnDataUpdate(this::runChecks);
     }
 
     public void register(Check check) {
@@ -50,6 +54,27 @@ public class CheckRegistry {
     public void runChecks(LatchPlayer player) {
         for (Check check : checksByName.values()) {
             if (check.isEnabled()) check.onCheck(player);
+        }
+    }
+
+    /** Notifies all checks to clean up per-player state for the quitting player. */
+    public void onPlayerQuit(UUID playerId) {
+        for (Check check : checksByName.values()) {
+            check.onQuit(playerId);
+        }
+    }
+
+    /** Distributes attack events to all enabled checks. */
+    public void runAttackChecks(LatchPlayer player, int entityId) {
+        for (Check check : checksByName.values()) {
+            if (check.isEnabled()) check.onAttack(player, entityId);
+        }
+    }
+
+    /** Distributes velocity events to all enabled checks. */
+    public void runVelocityChecks(LatchPlayer player, double vx, double vy, double vz) {
+        for (Check check : checksByName.values()) {
+            if (check.isEnabled()) check.onVelocity(player, vx, vy, vz);
         }
     }
 

@@ -33,6 +33,10 @@ public class FlyGroundSpoof extends Check {
     public void onCheck(LatchPlayer p) {
         if (!p.hasPosition()) return;
         if (p.isInVehicle()) return;
+        if (p.shouldExemptMovement()) {
+            states.remove(p.getUniqueId());
+            return;
+        }
         if (!p.isOnGround()) {
             states.remove(p.getUniqueId());
             return;
@@ -59,4 +63,9 @@ public class FlyGroundSpoof extends Check {
     }
 
     private static class SpoofState { int ticks; double lastY; }
+
+    @Override
+    public void onQuit(UUID playerId) {
+        states.remove(playerId);
+    }
 }

@@ -54,6 +54,15 @@ public class LatchPlayer {
     private boolean inLiquid;
     private long lastMoveTime;
 
+    // ---- Combat ----
+    private long lastAttackTime;
+    private long lastSwingTime;
+    private int lastTargetId = -1;
+    private double pendingVelocityX, pendingVelocityY, pendingVelocityZ;
+    private long pendingVelocityTime;
+    // ---- Timing ----
+    private java.util.Deque<Long> packetTimestamps = new java.util.ArrayDeque<>();
+
     // ---- Exemption ----
 
     /** GameMode ordinal: 0=Survival, 1=Creative, 2=Adventure, 3=Spectator. */
@@ -129,6 +138,31 @@ public class LatchPlayer {
 
     public void setInVehicle(boolean inVehicle) { this.inVehicle = inVehicle; }
     public void setInLiquid(boolean inLiquid) { this.inLiquid = inLiquid; }
+
+    // Combat setters/getters
+    public long getLastAttackTime() { return lastAttackTime; }
+    public void setLastAttackTime(long t) { this.lastAttackTime = t; }
+    public long getLastSwingTime() { return lastSwingTime; }
+    public void setLastSwingTime(long t) { this.lastSwingTime = t; }
+    public int getLastTargetId() { return lastTargetId; }
+    public void setLastTargetId(int id) { this.lastTargetId = id; }
+
+    // Velocity
+    public void setPendingVelocity(double vx, double vy, double vz) {
+        this.pendingVelocityX = vx; this.pendingVelocityY = vy; this.pendingVelocityZ = vz;
+        this.pendingVelocityTime = System.nanoTime();
+    }
+    public double getPendingVelocityX() { return pendingVelocityX; }
+    public double getPendingVelocityY() { return pendingVelocityY; }
+    public double getPendingVelocityZ() { return pendingVelocityZ; }
+    public long getPendingVelocityTime() { return pendingVelocityTime; }
+
+    // Timing
+    public void addPacketTimestamp(long nanoTime) {
+        packetTimestamps.addLast(nanoTime);
+        if (packetTimestamps.size() > 120) packetTimestamps.removeFirst();
+    }
+    public java.util.Deque<Long> getPacketTimestamps() { return packetTimestamps; }
 
     public void setGameMode(int gameMode) { this.gameMode = gameMode; }
     public int getGameMode() { return gameMode; }

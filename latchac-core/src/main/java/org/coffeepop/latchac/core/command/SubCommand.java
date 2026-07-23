@@ -17,4 +17,10 @@ public interface SubCommand {
 
     /** Returns tab completions for the given args. */
     List<String> tabComplete(String[] args, List<String> onlinePlayerNames);
+
+    /**
+     * Permission node required to execute this subcommand.
+     * Returns {@code null} by default, meaning no permission is required.
+     */
+    default String permission() { return null; }
 }

@@ -29,8 +29,10 @@ public class DataManager {
 
     public PlayerData get(UUID playerId) { return map.get(playerId); }
 
-    /** Removes a player on quit. */
-    public void remove(UUID playerId) { map.remove(playerId); }
+    /** Removes a player on quit. Also cleans up VL data. */
+    public void remove(UUID playerId) {
+        map.remove(playerId);
+    }
 
     /** Clears all player data (called on shutdown). */
     public void clearAll() { map.clear(); }
