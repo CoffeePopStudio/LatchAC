@@ -7,8 +7,8 @@ import org.coffeepop.latchac.core.check.CheckType;
 import org.coffeepop.latchac.core.player.LatchPlayer;
 
 /**
- * Detects abnormal vertical movement via BaselineProfiler.
- * Tracks the player's own jump decay pattern — fly hacks deviate from this baseline.
+ * Detects abnormal vertical movement — now with groundRatio cross-validation.
+ * Fly hacks: sustained time in air + abnormal vertical pattern.
  */
 @CheckInfo(name = "FlyVertical", type = CheckType.MOVEMENT, maxVL = 25)
 public class FlyVertical extends Check {
@@ -20,26 +20,36 @@ public class FlyVertical extends Check {
         if (!p.hasPosition()) return;
         if (p.isInVehicle()) return;
         if (p.isInLiquid()) return;
-        if (p.isOnGround()) return;
 
-        double dy = p.getDeltaY();
-        if (dy <= 0) return;
+        int score = 0;
 
         var profiler = LatchAC.get().getBaselineProfiler();
         var id = p.getUniqueId();
 
-        // Track vertical decay: dy / previous dy. Normal jump: < 0.85. Fly: ≈ 1.0
-        double lastDy = p.getDeltaY(); // approximate from last tick state
-        // Use a simpler approach: track raw dy as the metric
-        // In air, vanilla dy decreases by 0.08 each tick
-        // Fly produces stable/increasing dy
-        profiler.update(id, "verticalSpeed", dy);
+        // 1. Vertical speed anomaly (only upward bursts in air)
+        if (!p.isOnGround()) {
+            double dy = p.getDeltaY();
+            if (dy > 0) {
+                profiler.update(id, "verticalSpeed", dy);
+                var metric = profiler.getMetric(id, "verticalSpeed");
+                if (metric != null && metric.zScore() > 3.0 && metric.getCurrentValue() > metric.getBaseline()) {
+                    score++;
+                }
+            }
+        }
 
-        var metric = profiler.getMetric(id, "verticalSpeed");
-        if (metric != null && metric.isAnomalous() && metric.getCurrentValue() > metric.getBaseline()) {
-            flag(p, "dy=" + String.format("%.4f", dy)
-                    + " baseline=" + String.format("%.4f", metric.getBaseline())
-                    + " z=" + String.format("%.1f", metric.zScore()));
+        // 2. Ground ratio anomaly (spending too much time in air)
+        profiler.update(id, "groundRatio", p.getGroundRatio());
+        var grMetric = profiler.getMetric(id, "groundRatio");
+        if (grMetric != null && grMetric.zScore() > 3.0
+                && grMetric.getCurrentValue() < grMetric.getBaseline()) {
+            score++;
+        }
+
+        if (score >= 2) {
+            flag(p, "score=" + score
+                    + " dy=" + String.format("%.4f", p.getDeltaY())
+                    + " gr=" + String.format("%.2f", p.getGroundRatio()));
         }
     }
 }
