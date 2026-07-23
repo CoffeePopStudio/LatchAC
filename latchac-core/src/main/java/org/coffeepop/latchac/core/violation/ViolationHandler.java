@@ -31,6 +31,7 @@ public class ViolationHandler {
     private FlagCallback verbose = (pid, cn, vl, d) -> {};
     private FlagCallback alert   = (pid, cn, vl, d) -> {};
     private FlagCallback punish  = (pid, cn, vl, d) -> {};
+    private boolean trainingMode;
 
     public ViolationHandler(Logger logger) { this.logger = logger; }
 
@@ -42,9 +43,17 @@ public class ViolationHandler {
     public void setVerboseCallback(FlagCallback c) { this.verbose = c; }
     public void setAlertCallback(FlagCallback c)   { this.alert = c; }
     public void setPunishCallback(FlagCallback c)  { this.punish = c; }
+    public void setTrainingMode(boolean trainingMode) { this.trainingMode = trainingMode; }
 
     public void handle(Violation v) {
         UUID pid = v.getPlayerId();
+
+        // Training mode: only verbose logging, no VL accumulation or punishment
+        if (trainingMode) {
+            verbose.onFlag(pid, v.getCheckName(), -1, "[TRAINING] " + v.getDetail());
+            return;
+        }
+
         decayVL(pid);
 
         Map<String, Integer> ckVLs = playerVLs.computeIfAbsent(pid, k -> new ConcurrentHashMap<>());

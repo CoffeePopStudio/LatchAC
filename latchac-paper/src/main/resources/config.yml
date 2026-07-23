@@ -17,6 +17,6 @@ baseline:
   # Auto-export population baseline for community contribution
   export-enabled: false
   # Training mode: when true, current player data feeds directly into population baseline
-  training-mode: false
+  training-mode: true
   # Admin UUIDs that bypass admission gating (directly whitelisted into population pool)
   admin-whitelist: []

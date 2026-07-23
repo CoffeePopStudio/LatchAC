@@ -50,8 +50,9 @@ public final class LatchACPlugin extends JavaPlugin {
 
         boolean trainingMode = yaml.getBoolean("baseline.training-mode", false);
         LatchAC.get().getBaselineProfiler().setTrainingMode(trainingMode);
+        LatchAC.get().getViolationHandler().setTrainingMode(trainingMode);
         if (trainingMode) {
-            getLogger().info("Training mode enabled — player data will feed into population baseline");
+            getLogger().info("Training mode enabled — flags logged only, VL suppressed, data feeds into population baseline");
         }
 
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);
