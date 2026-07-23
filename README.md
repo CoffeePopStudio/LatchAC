@@ -18,10 +18,10 @@ latchac-paper/    # Paper 平台适配 — 数据包拦截、命令、配置
 
 | 检查 | 类型 | 方法 |
 |------|------|------|
-| FlyVertical | Movement | 物理预测 |
+| FlyVertical | Movement | 个体基线 |
 | FlyAirStuck | Movement | 物理预测 |
 | FlyGroundSpoof | Movement | 物理预测 |
-| Speed | Movement | 物理预测 |
+| Speed | Movement | 个体基线 |
 | KillAura | Combat | 个体基线偏离 |
 | Velocity | Combat | 物理推导 |
 | Timer | Exploit | 个体基线偏离 |
