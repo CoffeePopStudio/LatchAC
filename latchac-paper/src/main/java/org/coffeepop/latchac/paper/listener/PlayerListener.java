@@ -4,6 +4,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -61,11 +62,12 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent e) {
-        // 排除玩家自己的物品栏——仅追踪外部容器（箱子、熔炉等）
-        if (e.getInventory().getHolder() == e.getPlayer()) return;
+        // 排除玩家自身物品栏和合成界面——仅追踪外部容器
+        var type = e.getInventory().getType();
+        if (type == InventoryType.PLAYER || type == InventoryType.CRAFTING || type == InventoryType.CREATIVE) return;
         var data = LatchAC.get().getDataManager().get(e.getPlayer().getUniqueId());
         if (data != null) {
-            data.getPlayer().setInContainer(true, e.getInventory().getType().name());
+            data.getPlayer().setInContainer(true, type.name());
         }
     }
 
