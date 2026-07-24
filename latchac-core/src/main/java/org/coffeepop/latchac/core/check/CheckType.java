@@ -7,7 +7,8 @@ public enum CheckType {
     PLAYER("Player"),
     WORLD("World"),
     INVENTORY("Inventory"),
-    EXPLOIT("Exploit");
+    EXPLOIT("Exploit"),
+    MISC("Misc");
 
     private final String displayName;
     CheckType(String displayName) { this.displayName = displayName; }
