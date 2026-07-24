@@ -87,7 +87,8 @@ public abstract class Check {
     public void onVelocity(LatchPlayer player, double vx, double vy, double vz) {}
 
     protected void flag(PlayerData data, String detail) {
-        Violation v = new Violation(data.getPlayerId(), this.name, this.type, detail);
+        Violation v = new Violation(data.getPlayerId(), this.name, this.type, detail,
+                data.getPlayer());
         LatchAC.get().getViolationHandler().handle(v);
         if (LatchAC.get().getConfigManager().isDebug()) {
             LatchAC.get().getLogger().log(Level.INFO,
@@ -97,7 +98,7 @@ public abstract class Check {
     }
 
     protected void flag(LatchPlayer player, String detail) {
-        Violation v = new Violation(player.getUniqueId(), this.name, this.type, detail);
+        Violation v = new Violation(player.getUniqueId(), this.name, this.type, detail, player);
         LatchAC.get().getViolationHandler().handle(v);
         if (LatchAC.get().getConfigManager().isDebug()) {
             LatchAC.get().getLogger().log(Level.INFO,

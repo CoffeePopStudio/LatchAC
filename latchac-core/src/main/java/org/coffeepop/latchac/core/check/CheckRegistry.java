@@ -53,7 +53,9 @@ public class CheckRegistry {
 
     public void runChecks(LatchPlayer player) {
         for (Check check : checksByName.values()) {
-            if (check.isEnabled()) check.onCheck(player);
+            if (check.isEnabled() && !player.isCheckBypassed(check.getName())) {
+                check.onCheck(player);
+            }
         }
     }
 

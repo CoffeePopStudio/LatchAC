@@ -1,22 +1,58 @@
-# LatchAC V2 Configuration
-# This file is auto-generated with defaults. Edit to customize.
+# LatchAC Configuration — auto-generated defaults, edit to customize.
 
 debug: false
 prefix: "&8[&bLatchAC&8]"
-alert-threshold: 20
-punish-threshold: 50
 
-# Baseline Profiler settings
+# ====== Kick / Ban 理由模板（MiniMessage 格式）======
+# 换行用 YAML | 语法，插件自动处理。
+#
+# 占位符: {player} {check} {vl}
+#         {x} {y} {z} {dx} {dy} {dz} {ground} {vehicle} {gamemode} {cps} {ping}
+messages:
+  kick: |
+    <red>你被 LatchAC 踢出</red>
+    <gray>检测: {check}</gray>
+  ban: |
+    <red>你已被 LatchAC 封禁</red>
+    <gray>检测: {check}</gray>
+    <gray>如有疑问请联系管理</gray>
+
+# ====== Punish Ladder ======
+# 阶梯触发时自动让玩家执行惩罚。每条触发都会自动
+# 广播给 latchac.alerts 权限的管理员 —— 不需要额外配置。
+#
+# action 模式（推荐）— 简洁:
+#   KICK      使用 messages.kick 模板踢出
+#   TEMPBAN   临时封禁，需 duration（如 "24h" "7d"）
+#   BAN       永久封禁，使用 messages.ban 模板
+#   IPBAN     IP封禁，使用 messages.ban 模板
+#
+# commands 模式 — 自定义控制台命令:
+#   占位符: {player} {uuid} {check} {vl} {detail}
+#           {x} {y} {z} {dx} {dy} {dz} {ground} {vehicle} {gamemode} {cps} {ping}
+#           {kick} {ban}  展开为 messages 模板的纯文本版
+#
+#   ⚠ 不推荐在 commands 中调用其他插件的 ban/kick 指令。
+#     请优先使用 action: BAN / action: KICK —— 它们原生支持 MiniMessage 换行。
+#     commands 模式适合发公告、记日志等辅助操作。
+#
+# reset-vl: 执行后该检查 VL 归零。默认 true。
+
+punish-ladder:
+  - vl: 20
+    reset-vl: false
+
+  - vl: 50
+    action: KICK
+
+  - vl: 80
+    action: TEMPBAN
+    duration: "24h"
+
+  - vl: 120
+    action: BAN
+
+# ====== Baseline 系统 ======
 baseline:
-  # Source: local (self-learning only), community (remote only), both (merge)
-  source: local
-  # Trust level for remote data: strict (×0.3), moderate (normal), open (×1.5)
-  trust-level: moderate
-  # Remote community baseline URL (if source is community or both)
-  community-url: ""
-  # Auto-export population baseline for community contribution
-  export-enabled: false
-  # Training mode: when true, current player data feeds directly into population baseline
   training-mode: false
-  # Admin UUIDs that bypass admission gating (directly whitelisted into population pool)
   admin-whitelist: []

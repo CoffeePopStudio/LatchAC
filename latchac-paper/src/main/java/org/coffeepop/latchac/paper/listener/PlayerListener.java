@@ -12,6 +12,7 @@ import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.coffeepop.latchac.core.LatchAC;
 import org.coffeepop.latchac.core.player.LatchPlayer;
+import org.coffeepop.latchac.paper.LatchACPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class PlayerListener implements Listener {
         LatchPlayer lp = new LatchPlayer(p.getUniqueId(), p.getName(), p);
         lp.setInVehicle(p.isInsideVehicle());
         syncGameMode(lp, p);
+        LatchACPlugin.syncBypassPermissions(lp, p);
         LatchAC.get().getDataManager().addPlayer(lp);
         LatchAC.get().getBaselineProfiler().onPlayerJoin(p.getUniqueId());
     }

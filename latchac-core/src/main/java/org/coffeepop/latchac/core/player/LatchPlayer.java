@@ -85,6 +85,12 @@ public class LatchPlayer {
     /** Set true during setback teleport to skip next check cycle (re-entrancy guard). */
     private boolean setbackInProgress;
 
+    /** Network ping in milliseconds. */
+    private int ping;
+
+    // ---- Bypass ----
+    private final java.util.Set<String> bypassedChecks = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     public LatchPlayer(UUID uniqueId, String name, Object platformPlayer) {
         this.uniqueId = uniqueId;
         this.name = name;
@@ -240,6 +246,9 @@ public class LatchPlayer {
     public void setFlightToggled(boolean flightToggled) { this.flightToggled = flightToggled; }
     public boolean isFlightToggled() { return flightToggled; }
 
+    public void setPing(int ping) { this.ping = ping; }
+    public int getPing() { return ping; }
+
     /**
      * Whether this player should be fully exempt from all movement checks.
      * Only Creative and Spectator. Flight is handled by {@link #isFlightExempted()} instead —
@@ -256,6 +265,31 @@ public class LatchPlayer {
      */
     public boolean isFlightExempted() {
         return gameMode == 1 || gameMode == 3 || flightToggled;
+    }
+
+    // ---- Bypass ----
+
+    /** Adds a bypass for a specific check name, category wildcard, or "*" for all. */
+    public void addBypass(String checkOrCategory) {
+        bypassedChecks.add(checkOrCategory.toLowerCase());
+    }
+
+    /** Clears all bypasses (e.g. on permission change). */
+    public void clearBypasses() {
+        bypassedChecks.clear();
+    }
+
+    /** Returns true if this player has bypass for the given check. */
+    public boolean isCheckBypassed(String checkName) {
+        if (bypassedChecks.contains("*")) return true;
+        if (bypassedChecks.contains(checkName.toLowerCase())) return true;
+        // Check category wildcard: "fly.*" matches "fly.airstuck", "movement.*" etc.
+        int dot = checkName.indexOf('.');
+        if (dot > 0) {
+            String category = checkName.substring(0, dot).toLowerCase();
+            if (bypassedChecks.contains(category + ".*")) return true;
+        }
+        return false;
     }
 
     // ---- Scaffold ----
