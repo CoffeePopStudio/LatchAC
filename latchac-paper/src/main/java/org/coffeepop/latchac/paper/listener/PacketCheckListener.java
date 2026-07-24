@@ -9,10 +9,12 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.coffeepop.latchac.core.LatchAC;
 import org.coffeepop.latchac.core.data.PlayerData;
+import org.coffeepop.latchac.core.engine.PredictionEngine;
 import org.coffeepop.latchac.core.player.LatchPlayer;
 
 import java.util.Set;
@@ -53,6 +55,7 @@ public class PacketCheckListener extends PacketListenerAbstract {
             runOnMain(() -> {
                 PlayerData data = LatchAC.get().getDataManager().get(id);
                 if (data != null) {
+                    data.getPlayer().setFlightToggled(player.isFlying());
                     data.getPlayer().addPacketTimestamp(System.nanoTime());
                     data.getPlayer().incrementTickCount(snap.onGround());
                     snap.apply(data.getPlayer());
@@ -61,7 +64,7 @@ public class PacketCheckListener extends PacketListenerAbstract {
             });
         }
 
-        // Intercept attack packets for KillAura
+        // Intercept attack packets for KillAura / Reach
         if (ct == PacketType.Play.Client.INTERACT_ENTITY) {
             var wrapper = new WrapperPlayClientInteractEntity(event);
             int targetId = wrapper.getEntityId();
@@ -72,6 +75,12 @@ public class PacketCheckListener extends PacketListenerAbstract {
                 if (data != null && isAttack) {
                     data.getPlayer().setLastAttackTime(System.nanoTime());
                     data.getPlayer().setLastTargetId(targetId);
+                    Entity target = player.getWorld().getEntities().stream()
+                            .filter(e -> e.getEntityId() == targetId).findFirst().orElse(null);
+                    if (target != null) {
+                        data.getPlayer().updateTargetPosition(target.getLocation().getX(),
+                                target.getLocation().getY(), target.getLocation().getZ());
+                    }
                     LatchAC.get().getCheckRegistry().runAttackChecks(data.getPlayer(), targetId);
                 }
             });
@@ -82,6 +91,18 @@ public class PacketCheckListener extends PacketListenerAbstract {
                 if (data != null) {
                     data.getPlayer().setLastSwingTime(System.nanoTime());
                     data.getPlayer().addClickTimestamp(System.nanoTime());
+                }
+            });
+        }
+
+        // Scaffold: track block placement
+        if (ct == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            runOnMain(() -> {
+                PlayerData data = LatchAC.get().getDataManager().get(id);
+                if (data != null) {
+                    data.getPlayer().addScaffoldSample(System.nanoTime(),
+                            player.getLocation().getPitch(),
+                            data.getPlayer().getDeltaXZ());
                 }
             });
         }

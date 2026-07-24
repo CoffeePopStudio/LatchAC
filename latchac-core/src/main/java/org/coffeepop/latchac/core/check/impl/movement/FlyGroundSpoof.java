@@ -23,6 +23,7 @@ public class FlyGroundSpoof extends Check {
     public void onCheck(LatchPlayer p) {
         if (!p.hasPosition()) return;
         if (p.isInVehicle()) return;
+        if (p.isFlightExempted()) { spoofTicks.remove(p.getUniqueId()); return; }
         if (p.shouldExemptMovement()) { spoofTicks.remove(p.getUniqueId()); return; }
         if (!p.isOnGround()) { spoofTicks.remove(p.getUniqueId()); return; }
 

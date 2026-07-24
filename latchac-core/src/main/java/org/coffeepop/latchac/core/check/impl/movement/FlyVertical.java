@@ -20,6 +20,7 @@ public class FlyVertical extends Check {
         if (!p.hasPosition()) return;
         if (p.isInVehicle()) return;
         if (p.isInLiquid()) return;
+        if (p.isFlightExempted()) return;
 
         int score = 0;
 
